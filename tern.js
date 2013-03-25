@@ -31,6 +31,10 @@
       takesFile: true,
       run: findCompletions
     },
+    rawCompletions: {
+      takesFile: true,
+      run: findRawCompletions
+    },
     type: {
       takesFile: true,
       run: findTypeAt
@@ -386,7 +390,7 @@
       // 'hasOwnProperty' and such are usually just noise, leave them
       // out when no prefix is provided.
       if (!query.dontOmitObjectPrototype && obj == srv.cx.protos.Object && !word) return;
-      if (word && prop.indexOf(word) != 0) return;
+      if (!query.dontFilter && word && prop.indexOf(word) != 0) return;
       var val = obj.props[prop];
       if (!(val.flags & infer.flag_definite)) return;
       for (var i = 0; i < completions.length; ++i) {
@@ -422,6 +426,13 @@
     return {start: outputPos(query, file, wordStart),
             end: outputPos(query, file, wordEnd),
             completions: completions};
+  }
+
+  function findRawCompletions(_srv, query, file) {
+    query.dontFilter = true;
+    query.dontOmitObjectPrototype = true;
+    query.dontSort = true;
+    return findCompletions(_srv, query, file);
   }
 
   var findExpr = exports.findQueryExpr = function(file, query) {
