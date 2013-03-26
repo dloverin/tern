@@ -3,6 +3,7 @@
 (eval-when-compile (require 'cl))
 (require 'json)
 (require 'url)
+(require 'url-http)
 
 (defun tern-req (port doc c)
   (declare (special url-mime-charset-string url-request-method url-request-data url-show-status))
@@ -108,8 +109,7 @@ list of strings, giving the binary name and arguments.")
          (goto-char pos)))
       (unless start-pos (goto-char min-pos) (setf start-pos (line-beginning-position))))
     (save-excursion
-      (goto-char at)
-      (forward-char 1000)
+      (goto-char (min (+ at 1000) (point-max)))
       (let ((line-beg (line-beginning-position)))
         (setf end-pos (if (<= line-beg at) (line-end-position) line-beg))))
     `((type . "part")
@@ -339,6 +339,14 @@ list of strings, giving the binary name and arguments.")
   (find-file file)
   (goto-char (min pos (point-max))))
 
+;; Query type
+
+(defun tern-get-type ()
+  (interactive)
+  (tern-run-request (lambda (data _offset) (message (or (cdr (assq 'type data)) "Not found")))
+                    "type"
+                    (point)))
+
 ;; Mode plumbing
 
 (defun tern-after-change (_start _end _len)
@@ -357,6 +365,7 @@ list of strings, giving the binary name and arguments.")
 (define-key tern-mode-keymap [(meta ?.)] 'tern-find-definition)
 (define-key tern-mode-keymap [(meta ?,)] 'tern-pop-find-definition)
 (define-key tern-mode-keymap [(control ?c) (control ?r)] 'tern-rename-variable)
+(define-key tern-mode-keymap [(control ?c) (control ?c)] 'tern-get-type)
 
 (define-minor-mode tern-mode
   "Minor mode binding to the Tern JavaScript analyzer"
