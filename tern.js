@@ -430,7 +430,6 @@
 
   function findRawCompletions(_srv, query, file) {
     query.dontFilter = true;
-    query.dontOmitObjectPrototype = true;
     query.dontSort = true;
     return findCompletions(_srv, query, file);
   }
